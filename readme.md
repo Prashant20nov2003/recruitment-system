@@ -50,7 +50,7 @@ Run the migration script to set up the database schema:
 
 ```bash
 
-go run cmd/migrate.go
+go run migrate/migrate.go
 ``` 
 Run the Application
 Start the backend server
