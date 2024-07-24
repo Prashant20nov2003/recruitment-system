@@ -1,23 +1,42 @@
 package main
 
 import (
-    // "recruitment-system/controllers"
+    "log"
+    "os"
+    "recruitment-system/database"
     "recruitment-system/models"
     "recruitment-system/routes"
     "github.com/gin-gonic/gin"
-    "gorm.io/driver/sqlite"
-    "gorm.io/gorm"
+    "github.com/joho/godotenv"
 )
 
 func main() {
-    db, err := gorm.Open(sqlite.Open("recruitment.db"), &gorm.Config{})
+    // Load .env file
+    err := godotenv.Load()
     if err != nil {
-        panic("failed to connect database")
+        log.Fatalf("Error loading .env file: %v", err)
     }
 
-    db.AutoMigrate(&models.User{}, &models.Profile{}, &models.Job{})
+    // Get the database DSN from environment variables
+    dsn := os.Getenv("DATABASE_DSN")
+    if dsn == "" {
+        log.Fatalf("DATABASE_DSN environment variable not set")
+    }
 
+    // Initialize the database
+    db := database.InitDB(dsn)
+    
+    // Run migrations
+    if err := db.AutoMigrate(&models.User{}, &models.Profile{}, &models.Job{}).Error; err != nil {
+        log.Fatalf("Error migrating database: %v", err)
+    }
+
+    // Initialize the router
     router := gin.Default()
+
+    // Initialize routes
     routes.InitializeRoutes(router, db)
+
+    // Start the server
     router.Run(":8081")
 }
